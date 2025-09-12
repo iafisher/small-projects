@@ -4,6 +4,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "ian.h"
+
 
 int LOGGING = 0;
 
@@ -312,6 +314,32 @@ void print_avl_tree(const struct avl_node *root) {
   }
 }
 
+void avl_tree_to_sexp_builder(struct avl_node* root, struct IanStrBuilder* bldr) {
+  if (root == NULL) {
+    IanStrBuilder_append(bldr, "()");
+    return;
+  }
+
+  // calls to `sfmt` leak memory...
+
+  if (root->left == NULL && root->right == NULL) {
+    IanStrBuilder_append(bldr, sfmt("%s:%d", root->key, root->balance_factor));
+    return;
+  }
+
+  IanStrBuilder_append(bldr, sfmt("(%s:%d ", root->key, root->balance_factor));
+  avl_tree_to_sexp_builder(root->left, bldr);
+  IanStrBuilder_append(bldr, " ");
+  avl_tree_to_sexp_builder(root->right, bldr);
+  IanStrBuilder_append(bldr, ")");
+}
+
+char* avl_tree_to_sexp(struct avl_node* root) {
+  struct IanStrBuilder bldr = IanStrBuilder_new();
+  avl_tree_to_sexp_builder(root, &bldr);
+  return bldr.data;
+}
+
 /* Size 5: mostly left-leaning with one right child */
 struct avl_node* build_tree_5(void) {
   //        M
@@ -374,7 +402,17 @@ struct avl_node* build_tree_7(void) {
   return root;
 }
 
+void test_insert() {
+  struct avl_node* root = build_tree_7();
+  ian_assert_str_eq(avl_tree_to_sexp(root), "(D:0 (B:0 A:0 C:0) (F:0 E:0 G:0))");
+}
+
 int main() {
+  if (1) {
+    test_insert();
+    puts("tests passed");
+    return 0;
+  }
   /* char a_to_z[27]; */
   /* for (size_t i = 0; i < 26; i++) { */
   /*   a_to_z[i] = 'a' + i; */
