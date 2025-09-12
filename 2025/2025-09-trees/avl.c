@@ -10,29 +10,29 @@
 int LOGGING = 0;
 
 
-struct avl_node {
+struct AvlNode {
   const char* key;
   const char* value;
   int balance_factor;
-  struct avl_node *left, *right;
+  struct AvlNode *left, *right;
 };
 
-void print_avl_tree(const struct avl_node *root);
+void print_avl_tree(const struct AvlNode *root);
 
-struct avl_node* avl_node_create(const char* key, const char* value) {
-  struct avl_node* r = calloc(1, sizeof *r);
+struct AvlNode* AvlNode_create(const char* key, const char* value) {
+  struct AvlNode* r = calloc(1, sizeof *r);
   assert(r != NULL);
   r->key = key;
   r->value = value;
   return r;
 }
 
-struct avl_node_insertion {
-  struct avl_node* node;
+struct AvlNode_insertion {
+  struct AvlNode* node;
   unsigned int height_change;
 };
 
-unsigned int height(struct avl_node* r) {
+unsigned int height(struct AvlNode* r) {
   if (r == NULL) {
     return 0;
   } else {
@@ -42,7 +42,7 @@ unsigned int height(struct avl_node* r) {
   }
 }
 
-void check_balance_factor(struct avl_node* r) {
+void check_balance_factor(struct AvlNode* r) {
   if (r == NULL) return;
 
   check_balance_factor(r->left);
@@ -60,7 +60,7 @@ void check_balance_factor(struct avl_node* r) {
   }
 }
 
-void check_binary_tree(struct avl_node* r) {
+void check_binary_tree(struct AvlNode* r) {
   if (r == NULL) return;
 
   if (r->left) {
@@ -85,7 +85,7 @@ void check_binary_tree(struct avl_node* r) {
   /* check_binary_tree(r->right); */
 }
 
-struct avl_node* avl_node_rotate_right(struct avl_node* r) {
+struct AvlNode* AvlNode_rotate_right(struct AvlNode* r) {
   //       r
   //      / \
   //     c   T3
@@ -103,8 +103,8 @@ struct avl_node* avl_node_rotate_right(struct avl_node* r) {
   //     n   T2  T3
   /* puts("BEFORE ROTATE RIGHT"); */
   /* print_avl_tree(r); */
-  struct avl_node* c = r->left;
-  struct avl_node* t2 = c->right;
+  struct AvlNode* c = r->left;
+  struct AvlNode* t2 = c->right;
 
   c->right = r;
   r->left = t2;
@@ -113,11 +113,11 @@ struct avl_node* avl_node_rotate_right(struct avl_node* r) {
   return c;
 }
 
-struct avl_node* avl_node_rotate_left(struct avl_node* root) {
+struct AvlNode* AvlNode_rotate_left(struct AvlNode* root) {
   /* puts("BEFORE ROTATE LEFT"); */
   /* print_avl_tree(root); */
-  struct avl_node* right = root->right;
-  struct avl_node* right_left = right->left;
+  struct AvlNode* right = root->right;
+  struct AvlNode* right_left = right->left;
 
   right->left = root;
   root->right = right_left;
@@ -126,12 +126,12 @@ struct avl_node* avl_node_rotate_left(struct avl_node* root) {
   return right;
 }
 
-struct avl_node* avl_node_rotate_left_right(struct avl_node* root) {
+struct AvlNode* AvlNode_rotate_left_right(struct AvlNode* root) {
   int bf = root->left->right->balance_factor;
   /* puts("BEFORE ROTATE LEFT-RIGHT"); */
   /* print_avl_tree(root); */
-  root->left = avl_node_rotate_left(root->left);
-  struct avl_node* ret = avl_node_rotate_right(root);
+  root->left = AvlNode_rotate_left(root->left);
+  struct AvlNode* ret = AvlNode_rotate_right(root);
   if (bf == 0) {
     ret->left->balance_factor = 0;
     ret->right->balance_factor = 0;
@@ -147,12 +147,12 @@ struct avl_node* avl_node_rotate_left_right(struct avl_node* root) {
   return ret;
 }
 
-struct avl_node* avl_node_rotate_right_left(struct avl_node* root) {
+struct AvlNode* AvlNode_rotate_right_left(struct AvlNode* root) {
   int bf = root->right->left->balance_factor;
   /* puts("BEFORE ROTATE RIGHT-LEFT"); */
   /* print_avl_tree(root); */
-  root->right = avl_node_rotate_right(root->right);
-  struct avl_node* ret = avl_node_rotate_left(root);
+  root->right = AvlNode_rotate_right(root->right);
+  struct AvlNode* ret = AvlNode_rotate_left(root);
   ret->balance_factor = 0;
   if (bf == 0) {
     ret->left->balance_factor = 0;
@@ -169,19 +169,19 @@ struct avl_node* avl_node_rotate_right_left(struct avl_node* root) {
   return ret;
 }
 
-struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const char* key, const char* value) {
+struct AvlNode_insertion AvlNode_insert_helper(struct AvlNode* root, const char* key, const char* value) {
   if (root == NULL) {
     if (LOGGING) puts("inserting new leaf");
-    return (struct avl_node_insertion){ .node = avl_node_create(key, value), .height_change = 1 };
+    return (struct AvlNode_insertion){ .node = AvlNode_create(key, value), .height_change = 1 };
   }
 
   int cmp = strcmp(key, root->key);
   unsigned int height_change;
   if (cmp == 0) {
     root->value = value;
-    return (struct avl_node_insertion){ .node = root, .height_change = 0 };
+    return (struct AvlNode_insertion){ .node = root, .height_change = 0 };
   } else if (cmp < 0) {
-    struct avl_node_insertion insertion = avl_node_insert_helper(root->left, key, value);
+    struct AvlNode_insertion insertion = AvlNode_insert_helper(root->left, key, value);
     root->left = insertion.node;
     root->balance_factor += insertion.height_change;
     height_change = root->balance_factor > 0 ? 1 : 0;
@@ -190,7 +190,7 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
       print_avl_tree(root);
     }
   } else {
-    struct avl_node_insertion insertion = avl_node_insert_helper(root->right, key, value);
+    struct AvlNode_insertion insertion = AvlNode_insert_helper(root->right, key, value);
     root->right = insertion.node;
     root->balance_factor -= insertion.height_change;
     height_change = root->balance_factor < 0 ? 1 : 0;
@@ -200,10 +200,10 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
     }
   }
 
-  struct avl_node* new_root = root;
+  struct AvlNode* new_root = root;
   if (root->balance_factor == 2) {
     if (root->left->balance_factor == 1) {
-      new_root = avl_node_rotate_right(root);
+      new_root = AvlNode_rotate_right(root);
       new_root->balance_factor = 0;
       new_root->right->balance_factor = 0;
       if (LOGGING) {
@@ -211,7 +211,7 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
         print_avl_tree(new_root);
       }
     } else {
-      new_root = avl_node_rotate_left_right(root);
+      new_root = AvlNode_rotate_left_right(root);
       if (LOGGING) {
         puts("rotate_left_right");
         print_avl_tree(new_root);
@@ -221,7 +221,7 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
     height_change = 0;
   } else if (root->balance_factor == -2) {
     if (root->right->balance_factor == -1) {
-      new_root = avl_node_rotate_left(root);
+      new_root = AvlNode_rotate_left(root);
       new_root->balance_factor = 0;
       new_root->left->balance_factor = 0;
       if (LOGGING) {
@@ -229,7 +229,7 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
         print_avl_tree(new_root);
       }
     } else {
-      new_root = avl_node_rotate_right_left(root);
+      new_root = AvlNode_rotate_right_left(root);
       if (LOGGING) {
         puts("rotate_right_left");
         print_avl_tree(new_root);
@@ -239,21 +239,21 @@ struct avl_node_insertion avl_node_insert_helper(struct avl_node* root, const ch
     height_change = 0;
   }
 
-  return (struct avl_node_insertion){ .node = new_root, .height_change = height_change };
+  return (struct AvlNode_insertion){ .node = new_root, .height_change = height_change };
 }
 
-struct avl_node* avl_node_insert(struct avl_node* root, const char* key, const char* value) {
+struct AvlNode* AvlNode_insert(struct AvlNode* root, const char* key, const char* value) {
   if (LOGGING) {
     puts("BEFORE");
     print_avl_tree(root);
   }
-  struct avl_node_insertion insertion = avl_node_insert_helper(root, key, value);
+  struct AvlNode_insertion insertion = AvlNode_insert_helper(root, key, value);
   check_balance_factor(insertion.node);
   check_binary_tree(insertion.node);
   return insertion.node;
 }
 
-void print_avl_subtree(const struct avl_node *node, const char *prefix, int is_last) {
+void print_avl_subtree(const struct AvlNode *node, const char *prefix, int is_last) {
   if (!node) return;
 
   // Draw connector for this node
@@ -286,7 +286,7 @@ void print_avl_subtree(const struct avl_node *node, const char *prefix, int is_l
   }
 }
 
-void print_avl_tree(const struct avl_node *root) {
+void print_avl_tree(const struct AvlNode *root) {
   if (!LOGGING) return;
 
   if (!root) {
@@ -314,7 +314,7 @@ void print_avl_tree(const struct avl_node *root) {
   }
 }
 
-void avl_tree_to_sexp_builder(struct avl_node* root, struct IanStrBuilder* bldr) {
+void avl_tree_to_sexp_builder(struct AvlNode* root, struct IanStrBuilder* bldr) {
   if (root == NULL) {
     IanStrBuilder_append(bldr, "()");
     return;
@@ -334,14 +334,14 @@ void avl_tree_to_sexp_builder(struct avl_node* root, struct IanStrBuilder* bldr)
   IanStrBuilder_append(bldr, ")");
 }
 
-char* avl_tree_to_sexp(struct avl_node* root) {
+char* avl_tree_to_sexp(struct AvlNode* root) {
   struct IanStrBuilder bldr = IanStrBuilder_new();
   avl_tree_to_sexp_builder(root, &bldr);
   return bldr.data;
 }
 
 /* Size 5: mostly left-leaning with one right child */
-struct avl_node* build_tree_5(void) {
+struct AvlNode* build_tree_5(void) {
   //        M
   //      /   \
   //     C     T
@@ -349,11 +349,11 @@ struct avl_node* build_tree_5(void) {
   //   A
   //    \
   //     B
-  struct avl_node* M = avl_node_create("M", "13");
-  struct avl_node* C = avl_node_create("C", "3");
-  struct avl_node* T = avl_node_create("T", "20");
-  struct avl_node* A = avl_node_create("A", "1");
-  struct avl_node* B = avl_node_create("B", "2");
+  struct AvlNode* M = AvlNode_create("M", "13");
+  struct AvlNode* C = AvlNode_create("C", "3");
+  struct AvlNode* T = AvlNode_create("T", "20");
+  struct AvlNode* A = AvlNode_create("A", "1");
+  struct AvlNode* B = AvlNode_create("B", "2");
 
   M->left = C;  M->right = T;
   C->left = A;
@@ -362,7 +362,7 @@ struct avl_node* build_tree_5(void) {
 }
 
 /* Size 6: mixed shape with both subtrees having depth */
-struct avl_node* build_tree_6(void) {
+struct AvlNode* build_tree_6(void) {
   //        H
   //      /   \
   //     D     P
@@ -370,13 +370,13 @@ struct avl_node* build_tree_6(void) {
   //   B   F N
   //        \
   //         G
-  struct avl_node* H = avl_node_create("H", "8");
-  struct avl_node* D = avl_node_create("D", "4");
-  struct avl_node* P = avl_node_create("P", "16");
-  struct avl_node* B = avl_node_create("B", "2");
-  struct avl_node* F = avl_node_create("F", "6");
-  struct avl_node* N = avl_node_create("N", "14");
-  struct avl_node* G = avl_node_create("G", "7");
+  struct AvlNode* H = AvlNode_create("H", "8");
+  struct AvlNode* D = AvlNode_create("D", "4");
+  struct AvlNode* P = AvlNode_create("P", "16");
+  struct AvlNode* B = AvlNode_create("B", "2");
+  struct AvlNode* F = AvlNode_create("F", "6");
+  struct AvlNode* N = AvlNode_create("N", "14");
+  struct AvlNode* G = AvlNode_create("G", "7");
 
   H->left = D; H->right = P;
   D->left = B; D->right = F;
@@ -386,24 +386,24 @@ struct avl_node* build_tree_6(void) {
 }
 
 /* Size 7: perfectly balanced BST-shaped layout for clarity */
-struct avl_node* build_tree_7(void) {
+struct AvlNode* build_tree_7(void) {
   //         D
   //       /   \
   //      B     F
   //     / \   / \
   //    A   C E   G
-  struct avl_node* root = avl_node_create("D", "4");
-  root = avl_node_insert(root, "B", "2");
-  root = avl_node_insert(root, "F", "6");
-  root = avl_node_insert(root, "A", "1");
-  root = avl_node_insert(root, "C", "3");
-  root = avl_node_insert(root, "E", "5");
-  root = avl_node_insert(root, "G", "7");
+  struct AvlNode* root = AvlNode_create("D", "4");
+  root = AvlNode_insert(root, "B", "2");
+  root = AvlNode_insert(root, "F", "6");
+  root = AvlNode_insert(root, "A", "1");
+  root = AvlNode_insert(root, "C", "3");
+  root = AvlNode_insert(root, "E", "5");
+  root = AvlNode_insert(root, "G", "7");
   return root;
 }
 
 void test_insert() {
-  struct avl_node* root = build_tree_7();
+  struct AvlNode* root = build_tree_7();
   ian_assert_str_eq(avl_tree_to_sexp(root), "(D:0 (B:0 A:0 C:0) (F:0 E:0 G:0))");
 }
 
@@ -433,7 +433,7 @@ int main() {
   /* size_t len = 26; */
   size_t len = 8;
 
-  struct avl_node* root = NULL;
+  struct AvlNode* root = NULL;
   for (size_t i = 0; i < len; i++) {
     char* s = malloc(2);
     s[0] = a_to_z[i];
@@ -441,41 +441,41 @@ int main() {
     if (s[0] == 'z') {
       LOGGING = 1;
     }
-    root = avl_node_insert(root, s, "");
+    root = AvlNode_insert(root, s, "");
   }
 
   puts("");
   print_avl_tree(root);
 
-  /* struct avl_node* root = avl_node_create("30", ""); */
+  /* struct AvlNode* root = AvlNode_create("30", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "20", ""); */
+  /* root = AvlNode_insert(root, "20", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "10", ""); */
+  /* root = AvlNode_insert(root, "10", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "40", ""); */
+  /* root = AvlNode_insert(root, "40", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "50", ""); */
+  /* root = AvlNode_insert(root, "50", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "25", ""); */
+  /* root = AvlNode_insert(root, "25", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "35", ""); */
+  /* root = AvlNode_insert(root, "35", ""); */
   /* /1* print_avl_tree(root); *1/ */
   /* /1* puts(""); *1/ */
-  /* root = avl_node_insert(root, "36", ""); */
+  /* root = AvlNode_insert(root, "36", ""); */
 
   /* puts(""); */
   /* puts("FINAL"); */
   /* print_avl_tree(root); */
-  /* struct avl_node* t5 = build_tree_5(); */
-  /* struct avl_node* t6 = build_tree_6(); */
-  /* struct avl_node* t7 = build_tree_7(); */
+  /* struct AvlNode* t5 = build_tree_5(); */
+  /* struct AvlNode* t6 = build_tree_6(); */
+  /* struct AvlNode* t7 = build_tree_7(); */
 
   /* puts("Tree (size 5):"); */
   /* print_avl_tree(t5); */
