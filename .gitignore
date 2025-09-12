@@ -1,0 +1,8 @@
+*.pyc
+*.pyo
+__pycache__/
+node_modules/
+*.exe
+*.swp
+*~
+.DS_Store
