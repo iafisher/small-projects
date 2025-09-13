@@ -1,5 +1,0 @@
-build:
-  clang -fsanitize=address -Wall -Werror -g -I../../include -o avl.exe ../../lib/ian.c avl.c
-
-run: build
-  MallocNanoZone=0 ./avl.exe
