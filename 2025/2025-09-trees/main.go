@@ -2,19 +2,22 @@ package main
 
 import (
 	"fmt"
-	"iafisher.com/small-projects/trees/avl"
+	// "iafisher.com/small-projects/trees/avl"
+	"iafisher.com/small-projects/trees/twothree"
 )
 
 func main() {
-	s := "poiuytrewqlkjhgfdsamnbvcxz"
+	if true {
+		s := "poiuytrewqlkjhgfdsamnbvcxz"
 
-	root := avl.New("0", "")
-	for _, c := range s {
-		fmt.Printf("insert %c\n", c)
-		root = root.Insert(string(c), "")
-		root.Check()
+		root := twothree.New("0", "")
+		for _, c := range s {
+			fmt.Printf("insert %c\n", c)
+			root = root.Insert(string(c), "")
+			// root.Check()
+		}
+		fmt.Println(root.String())
 	}
-	root.Print()
 	// fmt.Println("insert 6")
 	// root = root.Insert("6", "")
 	// root.Print()
@@ -34,4 +37,15 @@ func main() {
 	// root = root.Insert("7", "")
 	// root.Print()
 	// root.Check()
+
+	if false {
+		root := twothree.New("9", "")
+		root = root.Insert("5", "")
+		root = root.Insert("8", "")
+		root = root.Insert("3", "")
+		root = root.Insert("2", "")
+		root = root.Insert("4", "")
+		root = root.Insert("7", "")
+		fmt.Println(root.String())
+	}
 }

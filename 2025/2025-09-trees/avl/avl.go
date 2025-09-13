@@ -19,8 +19,6 @@ func New(key string, value string) *Node {
 	return &Node{Key: key, Value: value, Balance: 0, Left: nil, Right: nil}
 }
 
-// precondition: n.Balance == 2
-// precondition: n.Left.Balance == 1
 func (n *Node) rotateRight() *Node {
 	newRoot := n.Left
 	n.Left = newRoot.Right
@@ -28,8 +26,6 @@ func (n *Node) rotateRight() *Node {
 	return newRoot
 }
 
-// precondition: n.Balance == -2
-// precondition: n.Right.Balance == -1
 func (n *Node) rotateLeft() *Node {
 	newRoot := n.Right
 	n.Right = newRoot.Left
@@ -37,46 +33,53 @@ func (n *Node) rotateLeft() *Node {
 	return newRoot
 }
 
-// precondition: n.Balance == 2
-// precondition: n.Left.Balance == -1
 func (n *Node) rotateLeftRight() *Node {
 	n.Left = n.Left.rotateLeft()
 	return n.rotateRight()
 }
 
-// precondition: n.Balance == -2
-// precondition: n.Right.Balance == 1
 func (n *Node) rotateRightLeft() *Node {
 	n.Right = n.Right.rotateRight()
 	return n.rotateLeft()
 }
 
-// returns `(node, heightChange)`
+// returns `(node, heightChanged)`
 // postcondition: `node` is a balanced AVL tree
-// postcondition: `heightChange` is -1, 0, or 1
-func (n *Node) insert(key string, value string) (*Node, int) {
+//
+// Returning `heightChanged` allows us to more efficiently re-calculate the balance of
+// intermediate nodes without recomputing the heights of all child trees -- at the cost
+// of considerably complicating the implementation.
+func (n *Node) insert(key string, value string) (*Node, bool) {
 	if n == nil {
-		return New(key, value), 1
+		return New(key, value), true
 	}
 
-	myHeightChange := 0
-	var childHeightChange int
+	myHeightChanged := false
+	var childHeightChanged bool
 	cmp := strings.Compare(key, n.Key)
 	if cmp < 0 {
-		n.Left, childHeightChange = n.Left.insert(key, value)
-		if childHeightChange != 0 && n.Balance >= 0 {
-			myHeightChange = childHeightChange
+		n.Left, childHeightChanged = n.Left.insert(key, value)
+		if childHeightChanged {
+			if n.Balance >= 0 {
+				myHeightChanged = true
+			}
+			n.Balance += 1
+		} else {
+			return n, false
 		}
-		n.Balance += childHeightChange
 	} else if cmp == 0 {
 		n.Value = value
-		return n, 0
+		return n, false
 	} else {
-		n.Right, childHeightChange = n.Right.insert(key, value)
-		if childHeightChange != 0 && n.Balance <= 0 {
-			myHeightChange = childHeightChange
+		n.Right, childHeightChanged = n.Right.insert(key, value)
+		if childHeightChanged {
+			if n.Balance <= 0 {
+				myHeightChanged = true
+			}
+			n.Balance -= 1
+		} else {
+			return n, false
 		}
-		n.Balance -= childHeightChange
 	}
 
 	if n.Balance == -2 {
@@ -94,12 +97,12 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 				r.Left.Balance = 0
 				r.Right.Balance = -1
 			}
-			return r, 0
+			return r, false
 		} else {
 			r := n.rotateLeft()
 			r.Balance = 0
 			r.Left.Balance = 0
-			return r, 0
+			return r, false
 		}
 	} else if n.Balance == 2 {
 		if n.Left.Balance == -1 {
@@ -116,16 +119,16 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 				r.Left.Balance = 0
 				r.Right.Balance = -1
 			}
-			return r, 0
+			return r, false
 		} else {
 			r := n.rotateRight()
 			r.Balance = 0
 			r.Right.Balance = 0
-			return r, 0
+			return r, false
 		}
 	}
 
-	return n, myHeightChange
+	return n, myHeightChanged
 }
 
 func (n *Node) Insert(key string, value string) *Node {
