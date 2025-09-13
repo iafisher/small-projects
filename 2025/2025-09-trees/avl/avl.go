@@ -2,6 +2,8 @@ package avl
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -80,7 +82,6 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 	if n.Balance == -2 {
 		if n.Right.Balance == 1 {
 			b := n.Right.Left.Balance
-			fmt.Printf("rotateRightLeft at key=%s\n", n.Key)
 			r := n.rotateRightLeft()
 			r.Balance = 0
 			if b == -1 {
@@ -95,7 +96,6 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 			}
 			return r, 0
 		} else {
-			fmt.Printf("rotateLeft at key=%s\n", n.Key)
 			r := n.rotateLeft()
 			r.Balance = 0
 			r.Left.Balance = 0
@@ -104,7 +104,6 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 	} else if n.Balance == 2 {
 		if n.Left.Balance == -1 {
 			b := n.Left.Right.Balance
-			fmt.Printf("rotateLeftRight at key=%s\n", n.Key)
 			r := n.rotateLeftRight()
 			r.Balance = 0
 			if b == -1 {
@@ -119,7 +118,6 @@ func (n *Node) insert(key string, value string) (*Node, int) {
 			}
 			return r, 0
 		} else {
-			fmt.Printf("rotateRight at key=%s\n", n.Key)
 			r := n.rotateRight()
 			r.Balance = 0
 			r.Right.Balance = 0
@@ -150,21 +148,60 @@ func (n *Node) Retrieve(key string) string {
 	}
 }
 
-func (n *Node) printRec() {
+func (n *Node) stringRec(sb *strings.Builder) {
 	if n == nil {
-		fmt.Print("()")
+		sb.WriteString("()")
 	} else if n.Left == nil && n.Right == nil {
-		fmt.Printf("%s:%d", n.Key, n.Balance)
+		sb.WriteString(fmt.Sprintf("%s:%d", n.Key, n.Balance))
 	} else {
-		fmt.Printf("(%s:%d ", n.Key, n.Balance)
-		n.Left.printRec()
-		fmt.Print(" ")
-		n.Right.printRec()
-		fmt.Print(")")
+		sb.WriteString(fmt.Sprintf("(%s:%d ", n.Key, n.Balance))
+		n.Left.stringRec(sb)
+		sb.WriteByte(' ')
+		n.Right.stringRec(sb)
+		sb.WriteByte(')')
 	}
 }
 
+func (n Node) String() string {
+	var sb strings.Builder
+	n.stringRec(&sb)
+	return sb.String()
+}
+
+func (n Node) Fprint(w io.Writer) {
+	fmt.Fprintf(w, "%s\n", n.String())
+}
+
 func (n Node) Print() {
-	n.printRec()
-	fmt.Println("")
+	n.Fprint(os.Stdout)
+}
+
+func (n *Node) Height() int {
+	if n == nil {
+		return 0
+	} else {
+		return max(n.Left.Height(), n.Right.Height()) + 1
+	}
+}
+
+func (n *Node) Check() {
+	if n == nil {
+		return
+	}
+	leftHeight := n.Left.Height()
+	rightHeight := n.Right.Height()
+	if n.Balance != leftHeight-rightHeight {
+		fmt.Fprintf(
+			os.Stderr,
+			"error: balance is %d, expected %d = %d - %d\n",
+			n.Balance,
+			leftHeight-rightHeight,
+			leftHeight,
+			rightHeight)
+		fmt.Fprint(os.Stderr, "  ")
+		n.Fprint(os.Stderr)
+	}
+
+	n.Left.Check()
+	n.Right.Check()
 }
