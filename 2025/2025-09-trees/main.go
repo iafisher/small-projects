@@ -87,8 +87,8 @@ func updateBalances(stack []StackItem) {
 	}
 }
 
-// precondition: n.Balance == -2
-// precondition: n.Right.Balance == -1
+// precondition: n.Balance == 2
+// precondition: n.Left.Balance == 1
 func (n *AvlNode) rotateRight() *AvlNode {
 	newRoot := n.Left
 	n.Left = newRoot.Right
@@ -96,8 +96,8 @@ func (n *AvlNode) rotateRight() *AvlNode {
 	return newRoot
 }
 
-// precondition: n.Balance == 2
-// precondition: n.Right.Balance == 1
+// precondition: n.Balance == -2
+// precondition: n.Right.Balance == -1
 func (n *AvlNode) rotateLeft() *AvlNode {
 	newRoot := n.Right
 	n.Right = newRoot.Left
@@ -105,11 +105,15 @@ func (n *AvlNode) rotateLeft() *AvlNode {
 	return newRoot
 }
 
+// precondition: n.Balance == 2
+// precondition: n.Left.Balance == -1
 func (n *AvlNode) rotateLeftRight() *AvlNode {
 	n.Left = n.Left.rotateLeft()
 	return n.rotateRight()
 }
 
+// precondition: n.Balance == -2
+// precondition: n.Right.Balance == 1
 func (n *AvlNode) rotateRightLeft() *AvlNode {
 	n.Right = n.Right.rotateRight()
 	return n.rotateLeft()
@@ -118,22 +122,16 @@ func (n *AvlNode) rotateRightLeft() *AvlNode {
 // returns `(node, heightChange)`
 // postcondition: `node` is a balanced AVL tree
 // postcondition: `heightChange` is -1, 0, or 1
-func (n *AvlNode) insert2(key string, value string) (*AvlNode, int) {
+func (n *AvlNode) insert(key string, value string) (*AvlNode, int) {
 	if n == nil {
 		return New(key, value), 1
 	}
-
-	// logging := key == "2"
-	logging := false
 
 	myHeightChange := 0
 	var childHeightChange int
 	cmp := strings.Compare(key, n.Key)
 	if cmp < 0 {
-		n.Left, childHeightChange = n.Left.insert2(key, value)
-		if logging {
-			fmt.Printf("got %d at key=%s\n", childHeightChange, n.Key)
-		}
+		n.Left, childHeightChange = n.Left.insert(key, value)
 		if childHeightChange != 0 && n.Balance >= 0 {
 			myHeightChange = childHeightChange
 		}
@@ -142,7 +140,7 @@ func (n *AvlNode) insert2(key string, value string) (*AvlNode, int) {
 		n.Value = value
 		return n, 0
 	} else {
-		n.Right, childHeightChange = n.Right.insert2(key, value)
+		n.Right, childHeightChange = n.Right.insert(key, value)
 		if childHeightChange != 0 && n.Balance <= 0 {
 			myHeightChange = childHeightChange
 		}
@@ -151,11 +149,20 @@ func (n *AvlNode) insert2(key string, value string) (*AvlNode, int) {
 
 	if n.Balance == -2 {
 		if n.Right.Balance == 1 {
+			b := n.Right.Left.Balance
 			fmt.Printf("rotateRightLeft at key=%s\n", n.Key)
 			r := n.rotateRightLeft()
 			r.Balance = 0
-			r.Left.Balance = 0
-			r.Right.Balance = 0
+			if b == -1 {
+				r.Left.Balance = 1
+				r.Right.Balance = 0
+			} else if b == 0 {
+				r.Left.Balance = 0
+				r.Right.Balance = 0
+			} else {
+				r.Left.Balance = 0
+				r.Right.Balance = -1
+			}
 			return r, 0
 		} else {
 			fmt.Printf("rotateLeft at key=%s\n", n.Key)
@@ -166,56 +173,36 @@ func (n *AvlNode) insert2(key string, value string) (*AvlNode, int) {
 		}
 	} else if n.Balance == 2 {
 		if n.Left.Balance == -1 {
+			b := n.Left.Right.Balance
 			fmt.Printf("rotateLeftRight at key=%s\n", n.Key)
 			r := n.rotateLeftRight()
 			r.Balance = 0
-			r.Left.Balance = 0
-			// TODO: this seems wrong to hard-code
-			r.Right.Balance = -1
+			if b == -1 {
+				r.Left.Balance = 1
+				r.Right.Balance = 0
+			} else if b == 0 {
+				r.Left.Balance = 0
+				r.Right.Balance = 0
+			} else {
+				r.Left.Balance = 0
+				r.Right.Balance = -1
+			}
 			return r, 0
 		} else {
 			fmt.Printf("rotateRight at key=%s\n", n.Key)
 			r := n.rotateRight()
 			r.Balance = 0
-			// TODO: this seems inconsistent with the above
 			r.Right.Balance = 0
 			return r, 0
 		}
 	}
 
-	if logging {
-		fmt.Printf("returning %d from key=%s\n", myHeightChange, n.Key)
-	}
 	return n, myHeightChange
 }
 
-func (n *AvlNode) Insert2(key string, value string) *AvlNode {
-	r, _ := n.insert2(key, value)
-	return r
-}
-
 func (n *AvlNode) Insert(key string, value string) *AvlNode {
-	if n == nil {
-		return New(key, value)
-	}
-
-	// How is balance updated when we insert a new node X?
-	//
-	// Suppose X was inserted as left child of Y.
-	// If balance(Y) was 0, it is now 1.
-	// If balance(Y) was -1, it is now 0.
-	//
-	// Suppose X was inserted as right child of Y.
-	// If balance(Y) was 0, it is now -1.
-	// If balance(Y) was 1, it is now 0.
-
-	stack := buildStack(n, key, value)
-	if len(stack) == 0 {
-		return n
-	}
-
-	updateBalances(stack)
-	return n
+	r, _ := n.insert(key, value)
+	return r
 }
 
 func (n *AvlNode) Retrieve(key string) string {
@@ -254,33 +241,33 @@ func (n AvlNode) Print() {
 
 func main() {
 	// root := New("50", "")
-	// root = root.Insert2("60", "")
-	// root = root.Insert2("70", "")
-	// root = root.Insert2("30", "")
-	// root = root.Insert2("20", "")
-	// root = root.Insert2("40", "")
-	// root = root.Insert2("45", "")
-	// root = root.Insert2("35", "")
-	// root = root.Insert2("10", "")
+	// root = root.Insert("60", "")
+	// root = root.Insert("70", "")
+	// root = root.Insert("30", "")
+	// root = root.Insert("20", "")
+	// root = root.Insert("40", "")
+	// root = root.Insert("45", "")
+	// root = root.Insert("35", "")
+	// root = root.Insert("10", "")
 	// root.Print()
 
 	root := New("5", "")
 	fmt.Println("insert 6")
-	root = root.Insert2("6", "")
+	root = root.Insert("6", "")
 	root.Print()
 	fmt.Println("insert 8")
-	root = root.Insert2("8", "")
+	root = root.Insert("8", "")
 	root.Print()
 	fmt.Println("insert 3")
-	root = root.Insert2("3", "")
+	root = root.Insert("3", "")
 	root.Print()
 	fmt.Println("insert 2")
-	root = root.Insert2("2", "")
+	root = root.Insert("2", "")
 	root.Print()
 	fmt.Println("insert 4")
-	root = root.Insert2("4", "")
+	root = root.Insert("4", "")
 	root.Print()
 	fmt.Println("insert 7")
-	root = root.Insert2("7", "")
+	root = root.Insert("7", "")
 	root.Print()
 }
