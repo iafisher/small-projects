@@ -80,3 +80,17 @@ def step(df, p1, p2):
 step(bikeshare, 0.5, 0.33)
 
 # %%
+import matplotlib.pyplot as plt
+
+timeseries = pl.DataFrame(schema={"time": pl.Int64, "quantity": pl.Int64})
+df = bikeshare
+for i in range(3):
+    df = step(bikeshare, 0.5, 0.33)
+    timeseries = pl.concat(
+        [timeseries, pl.DataFrame(dict(time=[i], quantity=df[0]["num_of_bikes"]))]
+    )
+
+plt.plot(timeseries["time"].to_numpy(), timeseries["quantity"].to_numpy())
+plt.title("Bikeshare Results")
+plt.ylim(0, 20)
+plt.show()

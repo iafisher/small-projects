@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 dependencies = [
     "jupyterlab>=4.4.7",
     "jupytext>=1.17.3",
+    "matplotlib>=3.10.6",
     "numpy>=2.3.3",
     "pint>=0.25",
     "polars>=1.33.1",
