@@ -7,4 +7,5 @@ dependencies = [
     "jupytext>=1.17.3",
     "numpy>=2.3.3",
     "pint>=0.25",
+    "polars>=1.33.1",
 ]
