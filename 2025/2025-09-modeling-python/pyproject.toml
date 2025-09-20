@@ -1,0 +1,10 @@
+[project]
+name = "2025-09-modeling-python"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "jupyterlab>=4.4.7",
+    "jupytext>=1.17.3",
+    "numpy>=2.3.3",
+    "pint>=0.25",
+]

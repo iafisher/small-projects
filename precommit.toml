@@ -15,9 +15,9 @@ cmd = ["iprecommit-typos", "--paths"]
 
 [[pre_commit]]
 name = "PythonFormat"
-cmd = [".venv/bin/black", "--check"]
+cmd = ["black", "--check"]
 filters = ["*.py"]
-fix_cmd = [".venv/bin/black"]
+fix_cmd = ["black"]
 autofix = true
 fail_fast = true
 
